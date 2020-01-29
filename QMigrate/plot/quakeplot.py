@@ -253,9 +253,9 @@ class QuakePlot:
                                     self.data.filtered_signal[1, i, :], -1, "b")
             self._plot_signal_trace(z_trace, self.times,
                                     self.data.filtered_signal[2, i, :], -1, "g")
-            p_onset.plot(self.times, self.data.p_onset[i, :], "r",
+            p_onset.plot(self.times, self.data.p_onset_raw[i, :], "r",
                          linewidth=0.5)
-            s_onset.plot(self.times, self.data.s_onset[i, :], "b",
+            s_onset.plot(self.times, self.data.s_onset_raw[i, :], "b",
                          linewidth=0.5)
 
             # Defining Pick and Error

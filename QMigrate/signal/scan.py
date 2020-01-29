@@ -141,8 +141,8 @@ def onset(sig, stw, ltw, centred=False):
                 onset[i, :] = sta_lta_centred(sig[i, :], stw, ltw)
             else:
                 onset[i, :] = classic_sta_lta(sig[i, :], stw, ltw)
-            onset_raw[i, :] = onset[i, :]
             np.clip(1 + onset[i, :], 0.8, np.inf, onset[i, :])
+            onset_raw[i, :] = onset[i, :]
             np.log(onset[i, :], onset[i, :])
 
     return onset_raw, onset
@@ -1109,10 +1109,18 @@ class QuakeScan(DefaultQuakeScan):
         ilib.find_max_coa(map_4d, max_coa, grid_index, 0, nsamp, self.n_cores)
 
         # Get max_coa_norm
-        sum_coa = np.sum(map_4d, axis=(0, 1, 2))
-        max_coa_norm = max_coa / sum_coa
-        max_coa_norm = max_coa_norm * map_4d.shape[0] * map_4d.shape[1] * \
-                       map_4d.shape[2]
+        # sum_coa = np.sum(map_4d, axis=(0, 1, 2))
+        # max_coa_norm = max_coa / sum_coa
+        # max_coa_norm = max_coa_norm * map_4d.shape[0] * map_4d.shape[1] * \
+                    #    map_4d.shape[2]
+
+        max_coa = np.exp(max_coa / (len(avail_idx)*2))
+        map_4d = np.exp(map_4d / (len(avail_idx)*2))
+
+        coa_bg = np.sum(map_4d, axis=(0, 1, 2)) / (map_4d.shape[0] * \
+                                                   map_4d.shape[1] * \
+                                                   map_4d.shape[2])
+        max_coa_norm = max_coa / coa_bg
 
         tmp = np.arange(w_beg + self.pre_pad,
                         w_end - self.post_pad + (1 / self.sampling_rate),
@@ -1120,7 +1128,7 @@ class QuakeScan(DefaultQuakeScan):
         daten = [x.datetime for x in tmp]
 
         # Calculate max_coa (with correction for number of stations)
-        max_coa = np.exp((max_coa / (len(avail_idx) * 2)) - 1.0)
+        # max_coa = np.exp((max_coa / (len(avail_idx) * 2)) - 1.0)
 
         loc = self.lut.xyz2index(grid_index, inverse=True)
 
@@ -1495,10 +1503,10 @@ class QuakeScan(DefaultQuakeScan):
             if self.picking_mode == "Gaussian":
                 for phase in ["P", "S"]:
                     if phase == "P":
-                        onset = self.data.p_onset[i]
+                        onset = self.data.p_onset_raw[i]
                         arrival = p_arrival
                     else:
-                        onset = self.data.s_onset[i]
+                        onset = self.data.s_onset_raw[i]
                         arrival = s_arrival
 
                     gau, max_onset, err, mn = \
@@ -1979,7 +1987,8 @@ class QuakeScan(DefaultQuakeScan):
         """
 
         # MARGINALISE: Determining the 3-D coalescence map
-        self.coa_map = np.log(np.sum(np.exp(map_4d), axis=-1))
+        # self.coa_map = np.log(np.sum(np.exp(map_4d), axis=-1))
+        self.coa_map = np.sum(map_4d, axis=-1)
 
         # Normalise
         self.coa_map = self.coa_map/np.max(self.coa_map)
