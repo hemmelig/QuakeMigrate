@@ -262,7 +262,7 @@ class Event:
             pick_windows : dict
                 {station : phase{window}}
                 window: [min_time, max_time]
-            pick_threshold : float
+            noise_mad_scalar : float
                 float (between 0 and 1)
                 Picks will only be made if the onset function exceeds this
                 percentile of the noise level (average amplitude of onset
