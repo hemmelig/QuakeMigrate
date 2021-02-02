@@ -86,10 +86,10 @@ def get_extras_require():
 
 
 def get_include_dirs():
-    import numpy
+    # import numpy
 
     include_dirs = [str(pathlib.Path.cwd() / "quakemigrate" / "core" / "src"),
-                    numpy.get_include(),
+                    # numpy.get_include(),
                     str(pathlib.Path(sys.prefix) / "include")]
 
     if get_build_platform().startswith("freebsd"):
@@ -172,9 +172,20 @@ class CustomBuildExt(build_ext):
 
             build_ext.get_export_symbols = _get_export_symbols
 
+        __builtins__.__NUMPY_SETUP__ = False
+        import numpy
+        self.include_dirs.append(numpy.get_include())
+
 
 def setup_package():
     """Setup package"""
+
+    # try:
+    #     import numpy
+    # except ImportError:
+    #     print("NumPy required for installation - please do:"
+    #           "'pip install numpy'")
+    #     sys.exit()
 
     if not READ_THE_DOCS:
         install_requires = ["matplotlib<3.3", "numpy", "obspy>=1.2",
@@ -187,7 +198,8 @@ def setup_package():
         "name": "quakemigrate",
         "version": find_meta("version"),
         "description": find_meta("description"),
-        "long_description": long_description,
+        "long_description": pathlib.Path("README.md").read_text(),
+        "long_description_content_type": "text/markdown",
         "url": "https://github.com/QuakeMigrate/QuakeMigrate",
         "author": find_meta("author"),
         "author_email": find_meta("email"),
@@ -204,6 +216,7 @@ def setup_package():
             "Programming Language :: Python :: 3.8",
         ],
         "keywords": "seismic event detection location waveform migration",
+        "setup_requires": ["numpy"],
         "install_requires": install_requires,
         "extras_require": get_extras_require(),
         "zip_safe": False,
@@ -219,6 +232,7 @@ def setup_package():
                      "quakemigrate.signal.onsets",
                      "quakemigrate.signal.pickers"],
         "ext_modules": get_extensions(),
+        "include_package_data": True,
         "package_data": get_package_data(),
         "package_dir": get_package_dir()
                   }
